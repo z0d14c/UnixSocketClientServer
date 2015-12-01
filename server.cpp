@@ -33,7 +33,8 @@ int main(void)
  int socket_fd, connection_fd;
  socklen_t address_length;
  pid_t child;
- 
+ cout<<"Project 3 server starting."<<endl;
+
  socket_fd = socket(PF_UNIX, SOCK_STREAM, 0);
  if(socket_fd < 0)
  {
