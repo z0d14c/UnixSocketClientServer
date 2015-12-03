@@ -38,15 +38,18 @@ int main(int argc, char* args[]){
 	  return 1;
 	 }
 
-	 nbytes = snprintf(buffer, 256, "hello from a client");
-	 write(socket_fd, buffer, nbytes);
-	 
-	 nbytes = read(socket_fd, buffer, 256);
-	 buffer[nbytes] = 0;
+	 while(socket_fd != -1){
+ 		cout<<"executing in while loop"<<endl;
+		 nbytes = snprintf(buffer, 256, "hello from a client");
+		 write(socket_fd, buffer, nbytes);
+		 
+		 nbytes = read(socket_fd, buffer, 256);
+		 buffer[nbytes] = 0;
 
-	 printf("MESSAGE FROM SERVER: %s\n", buffer);
-
-	 close(socket_fd);
+		 printf("MESSAGE FROM SERVER: %s\n", buffer);
+	}
+	 close(socket_fd); //close socket connection
+	 cout<<"socket fd "<<socket_fd<<endl;
 
 	 return 0;
 }
