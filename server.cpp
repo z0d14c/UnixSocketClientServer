@@ -13,16 +13,23 @@ using namespace std;
 
 int connection_handler(int connection_fd)
 {
- int nbytes;
- char buffer[256];
+	int nbytes;
+	 char buffer[256];
+ 	 char choice = '0';
+	 while(choice != '5'){
+	// while(nbytes = read(connection_fd, buffer, 256) != 0){
+	 nbytes = read(connection_fd, buffer, 256); //reads, tells it to wait until 256 bytes have been read
+	 	cout<<"server side buffer"<<endl;
+	 	choice = buffer[0];
+	 	cout<<"user choice is "<<choice<<endl;
+		 buffer[nbytes] = 0; // (start after read bytes) to be sent to client
 
- nbytes = read(connection_fd, buffer, 256);
- buffer[nbytes] = 0;
-
- printf("MESSAGE FROM CLIENT: %s\n", buffer);
- nbytes = snprintf(buffer, 256, "hello from the server");
- write(connection_fd, buffer, nbytes);
- 
+		 printf("MESSAGE FROM CLIENT: %s\n", buffer); //read from client
+		 nbytes = snprintf(buffer, 256, "hello from the server"); //print to buffer (send to client)
+		 write(connection_fd, buffer, nbytes);
+ 	// }
+		}
+	cout<<"exiting connection handler"<<endl;
  close(connection_fd);
  return 0;
 }
@@ -42,13 +49,13 @@ int main(void)
   return 1;
  } 
 
- unlink("./demo_socket");
+ unlink("./demo_socket"); //delete demo socket file
 
  /* start with a clean address structure */
  memset(&address, 0, sizeof(struct sockaddr_un));
 
  address.sun_family = AF_UNIX;
- snprintf(address.sun_path, UNIX_PATH_MAX, "./demo_socket");
+ snprintf(address.sun_path, UNIX_PATH_MAX, "./demo_socket"); 
 
  if(bind(socket_fd, 
          (struct sockaddr *) &address, 
@@ -72,11 +79,11 @@ int main(void)
   if(child == 0)
   {
    /* now inside newly created connection handling process */
-   return connection_handler(connection_fd);
+   connection_handler(connection_fd);
   }
 
   /* still inside server process */
-  close(connection_fd);
+  //close(connection_fd);
  }
 
  close(socket_fd);
