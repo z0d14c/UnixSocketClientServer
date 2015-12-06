@@ -27,8 +27,16 @@ void addFile(string fileName, string fileData) {
   fileContents.push_back(fileData);
 }
 
+void addFileCmd(string params){
+  int separatorLoc = params.find("!!!");
+  string fileName = params.substr(0, separatorLoc);
+  string fileContent = params.substr(separatorLoc + 3, params.length() - 1);
+  files.push_back(fileName);
+  fileContents.push_back(fileContent);
+}
+
 //return file content
-string getFile(string params){
+string getFile(string params) {
   int choiceInt = atoi(params.c_str());
   string fileContent = fileContents.at(choiceInt);
   string fileName = files.at(choiceInt);
@@ -40,11 +48,11 @@ string getFile(string params){
 void deleteFile(string choice) {
   int choiceInt = atoi(choice.c_str());
   choiceInt--;
-  cout<<"choice int is "<<choiceInt<<endl;
-  cout<<"files size before "<<files.size()<<endl;
+  cout << "choice int is " << choiceInt << endl;
+  cout << "files size before " << files.size() << endl;
   files.erase(files.begin() + choiceInt);
   fileContents.erase(fileContents.begin() + choiceInt);
-  cout<<"files size after "<<files.size()<<endl;
+  cout << "files size after " << files.size() << endl;
 }
 
 //read files from directory
@@ -68,12 +76,12 @@ void readDirectory() {
 //### is end of message delimiter
 string listFiles() {
   string filesList = "";
-  cout<<"files size in list files"<<files.size()<<endl;
+  cout << "files size in list files" << files.size() << endl;
   for (int i = 0; i < files.size(); i++) {
     filesList = filesList + files.at(i) + "!!!";
   }
   filesList = filesList + "###";
-  cout<<"files list is "<<filesList<<endl;
+  cout << "files list is " << filesList << endl;
   return filesList;
 }
 
@@ -95,7 +103,7 @@ void initFiles() {
 string execute(char* command) {
   string commandString(command);
   string params = commandString.substr(1, commandString.find("###"));
-  cout<<params<<endl;
+  cout << params << endl;
   switch (command[0]) {
   case '1': //list files
     return listFiles();
@@ -104,10 +112,13 @@ string execute(char* command) {
     return getFile(params);
     break;
   case '3': //delete file
-      deleteFile(params);
+    deleteFile(params);
     return "1###";
     break;
   case '4': //add file
+    addFileCmd(params);
+    return "1###";
+    break;
   case '5': //exit
     return "1";
     break;
@@ -126,13 +137,13 @@ int connection_handler(int connection_fd)
   buffer[0] = '0'; //0 means user hasn't chosen yet! aka connection just started
   string response;
   while (buffer[0] != '5') {
-    cout<<"listening for response"<<endl;
+    cout << "listening for response" << endl;
     // while(nbytes = read(connection_fd, buffer, 256) != 0){
     nbytes = read(connection_fd, buffer, 256); //reads, tells it to wait until 256 bytes have been read
     response = execute(buffer);
     buffer[nbytes] = 0; // (start after read bytes) to be sent to client
-    cout<<"response lol "<<response<<endl;
-    cout<<"bufer lol "<<buffer<<endl;
+    cout << "response lol " << response << endl;
+    cout << "bufer lol " << buffer << endl;
     //printf("MESSAGE FROM CLIENT: %s\n", buffer); //read from client
     nbytes = snprintf(buffer, 256, "%s", response.c_str()); //print to buffer (send to client)
     write(connection_fd, buffer, nbytes);

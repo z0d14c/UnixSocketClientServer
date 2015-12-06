@@ -38,7 +38,6 @@ void saveFile(string input){
   ofstream outputFile(fileName.c_str());
   outputFile << fileContent;
   outputFile.close();
-
 }
 
 //interprets server response and outputs relevant info
@@ -80,6 +79,16 @@ char getFile() {
   return fileSelection;
 }
 
+//for adding a file to server
+string addFile(){
+  string fileSelection;
+  cout << "Please enter the file name you would like to add" << endl;
+  cin >> fileSelection;
+  fileSelection += "!!!FILLERCONTENT";
+  fileSelection += "###";
+  return fileSelection;
+}
+
 //allows user to add parameters, if applicable, to the command
 string processMenuChoice(char command) {
   string commandAndParam = "";
@@ -97,7 +106,8 @@ string processMenuChoice(char command) {
     return commandAndParam;
     break;
   case '4': //add file
-    return "4";
+    commandAndParam += addFile();
+    return commandAndParam;
     break;
   case '5': //exit
     return "5";
