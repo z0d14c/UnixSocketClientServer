@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <vector>
+#include <semaphore.h> //for semaphore control
 #define GetCurrentDir getcwd
 #define UNIX_PATH_MAX    108
 using namespace std;
@@ -19,7 +20,10 @@ char currentPath[FILENAME_MAX];
 char filesPath[FILENAME_MAX];
 vector<string> files;
 vector<string> fileContents;
+sem_t executeGuard; //used for mutual exclusion
 
+//TODO: add arguments
+//TODO: add read-from-files
 
 //adds a file to the virtual file system
 void addFile(string fileName, string fileData) {
@@ -27,7 +31,7 @@ void addFile(string fileName, string fileData) {
   fileContents.push_back(fileData);
 }
 
-void addFileCmd(string params){
+void addFileCmd(string params) {
   int separatorLoc = params.find("!!!");
   string fileName = params.substr(0, separatorLoc);
   string fileContent = params.substr(separatorLoc + 3, params.length() - 1);
@@ -63,7 +67,20 @@ void readDirectory() {
     /* print all the files and directories within directory */
     while ((ent = readdir (dir)) != NULL) {
       if (ent->d_name[0] != '.') {
-        string fileContent = "FILLERCONTENT";
+        string fileContent = ""; //gets stored in vector of
+        string str; //tempstring
+        char localFilePath[sizeof("files/") + sizeof(ent->d_name)];
+        strcpy(localFilePath, "files/"); // copy to result array
+        strcat(localFilePath, ent->d_name);
+        ifstream infile (localFilePath);
+        if (infile.is_open())
+        {
+          while ( getline (infile, str) )
+          {
+            fileContent += str;
+          }
+          infile.close();
+        }
         addFile(ent->d_name, fileContent);
       }
     }
@@ -81,7 +98,6 @@ string listFiles() {
     filesList = filesList + files.at(i) + "!!!";
   }
   filesList = filesList + "###";
-  cout << "files list is " << filesList << endl;
   return filesList;
 }
 
@@ -120,10 +136,10 @@ string execute(char* command) {
     return "1###";
     break;
   case '5': //exit
-    return "1";
+    return "5";
     break;
   default:
-    return "0";
+    return "5";
     break;
   }
 }
@@ -136,15 +152,13 @@ int connection_handler(int connection_fd)
   char buffer[256];
   buffer[0] = '0'; //0 means user hasn't chosen yet! aka connection just started
   string response;
-  while (buffer[0] != '5') {
-    cout << "listening for response" << endl;
+  while (buffer[0] != '5') { //5 is exit
     // while(nbytes = read(connection_fd, buffer, 256) != 0){
     nbytes = read(connection_fd, buffer, 256); //reads, tells it to wait until 256 bytes have been read
+    sem_wait(&executeGuard);
     response = execute(buffer);
+    sem_post(&executeGuard);
     buffer[nbytes] = 0; // (start after read bytes) to be sent to client
-    cout << "response lol " << response << endl;
-    cout << "bufer lol " << buffer << endl;
-    //printf("MESSAGE FROM CLIENT: %s\n", buffer); //read from client
     nbytes = snprintf(buffer, 256, "%s", response.c_str()); //print to buffer (send to client)
     write(connection_fd, buffer, nbytes);
     // }
@@ -156,6 +170,8 @@ int connection_handler(int connection_fd)
 
 int main(void)
 {
+//prep semaphore
+  sem_init(&executeGuard, 1, 1);
 //read files
   initFiles();
 //set up socket stuff
