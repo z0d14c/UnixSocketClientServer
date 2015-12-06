@@ -42,8 +42,6 @@ void saveFile(string input) {
 
 //interprets server response and outputs relevant info
 string interpret(char command, string input) {
-	cout << "command " << command << endl;
-	cout << "input " << input << endl;
 	switch (command) {
 	case '1': //list files
 		listFiles(input);
@@ -60,7 +58,7 @@ string interpret(char command, string input) {
 	default:
 		break;
 	}
-	return "lol";
+	return "string";
 }
 
 //accepts input from user on what to deletes
@@ -161,7 +159,7 @@ int main(int argc, char* args[]) {
 	memset(&address, 0, sizeof(struct sockaddr_un)); //sets up clean memory
 
 	address.sun_family = AF_UNIX; //set sun_family to AF_UNIX
-	snprintf(address.sun_path, 100, "./demo_socket");
+	snprintf(address.sun_path, 100, "./socket_file");
 
 	if (connect(socket_fd,
 	            (struct sockaddr *) &address,
@@ -174,7 +172,6 @@ int main(int argc, char* args[]) {
 	buffer[0] = '0'; // initialize to 0
 	while (buffer[0] != '5') {
 		string choice = menu();
-		cout << "choice is " << choice << endl;
 		nbytes = snprintf(buffer, 256, "%s", choice.c_str()); // write into buffer
 		write(socket_fd, buffer, nbytes); //send across socket
 		//wait for response
@@ -185,7 +182,6 @@ int main(int argc, char* args[]) {
 		interpret(choice[0], relevantInput);
 	}
 	close(socket_fd); //close socket connection
-	cout << "socket fd " << socket_fd << endl;
 
 	return 0;
 }

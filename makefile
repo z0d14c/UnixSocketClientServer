@@ -7,4 +7,4 @@ all:
 	$(CC) $(server) -pthread -o server
 
 clean:
-	rm client server demo_socket
+	rm client server socket_file

@@ -31,12 +31,12 @@ void addFile(string fileName, string fileData) {
   fileContents.push_back(fileData);
 }
 
+//does add file work
 void addFileCmd(string params) {
   int separatorLoc = params.find("!!!");
   string fileName = params.substr(0, separatorLoc);
   string fileContent = params.substr(separatorLoc + 3, params.length() - 1);
-  files.push_back(fileName);
-  fileContents.push_back(fileContent);
+  addFile(fileName, fileContent);
 }
 
 //return file content
@@ -52,11 +52,8 @@ string getFile(string params) {
 void deleteFile(string choice) {
   int choiceInt = atoi(choice.c_str());
   choiceInt--;
-  cout << "choice int is " << choiceInt << endl;
-  cout << "files size before " << files.size() << endl;
   files.erase(files.begin() + choiceInt);
   fileContents.erase(fileContents.begin() + choiceInt);
-  cout << "files size after " << files.size() << endl;
 }
 
 //read files from directory
@@ -93,7 +90,6 @@ void readDirectory() {
 //### is end of message delimiter
 string listFiles() {
   string filesList = "";
-  cout << "files size in list files" << files.size() << endl;
   for (int i = 0; i < files.size(); i++) {
     filesList = filesList + files.at(i) + "!!!";
   }
@@ -178,7 +174,7 @@ int main(void)
   struct sockaddr_un address;
   int socket_fd, connection_fd;
   socklen_t address_length;
-  pid_t child;
+  pid_t cp;
   cout << "Project 3 server starting." << endl;
 
   socket_fd = socket(PF_UNIX, SOCK_STREAM, 0);
@@ -188,44 +184,40 @@ int main(void)
     return 1;
   }
 
-  unlink("./demo_socket"); //delete demo socket file
+  unlink("./socket_file"); //delete demo socket file
 
   /* start with a clean address structure */
   memset(&address, 0, sizeof(struct sockaddr_un));
 
   address.sun_family = AF_UNIX;
-  snprintf(address.sun_path, UNIX_PATH_MAX, "./demo_socket");
+  snprintf(address.sun_path, UNIX_PATH_MAX, "./socket_file");
 
   if (bind(socket_fd,
            (struct sockaddr *) &address,
            sizeof(struct sockaddr_un)) != 0)
   {
-    printf("bind() failed\n");
+    printf("the bind function failed");
     return 1;
   }
 
   if (listen(socket_fd, 5) != 0)
   {
-    printf("listen() failed\n");
-    return 1;
+    printf("the listen function failed");
+    return 0;
   }
 
   while ((connection_fd = accept(socket_fd,
                                  (struct sockaddr *) &address,
                                  &address_length)) > -1)
   {
-    child = fork();
-    if (child == 0)
+    cp = fork();
+    if (cp == 0)
     {
-      /* now inside newly created connection handling process */
       connection_handler(connection_fd);
     }
-
-    /* still inside server process */
-    //close(connection_fd);
   }
 
   close(socket_fd);
-  unlink("./demo_socket");
-  return 0;
+  unlink("./socket_file");
+  return 1;
 }
